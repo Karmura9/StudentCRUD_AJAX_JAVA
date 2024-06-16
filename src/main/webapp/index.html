@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Servlet CRUD</title>
+
+<!-- Bootstrap 4 css1 js 1 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+<!-- Font awesome 6.5.2 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Animate CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<body>
+
+
+<div class="container">
+	<div class="row">
+		<h1 class="text-center">Servlet CRUD</h1>
+		<hr/>
+		<div class="col-md-12">
+		
+		
+		<button class="btn bg-light rounded-6" onClick="$('#mymodal').modal('show')">
+			<i style="font-size: 30px" class="fa-solid fa-plus"></i>
+		</button>	
+			
+		<form class="myform">
+			<div class="modal fade" id="mymodal" data-backdrop="static">
+			
+				<div class="modal-dialog">
+				
+					<div class="modal-content">
+					
+						<div class="modal-header">
+							<h3 class="modal-title">Add</h3>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+						</div>
+						
+						<div class="modal-body">
+							
+							<input type=hidden value="0" name="id"/>
+							
+							<div class="form-group m-3">
+								
+								<label>Enter Name</label>
+								<input type="text" class="form-control" name="name" placeholder="Enter Your Name"/>
+									
+							</div>
+							
+							<div class="form-group m-3">
+								
+								<label>Enter Mobile</label>
+								<input type="number" class="form-control" name="mobile" placeholder="Enter Your Mobile"/>
+									
+							</div>
+							
+							<div class="form-group m-3">
+								
+								<label>Enter Email</label>
+								<input type="email" class="form-control" name="email" placeholder="Enter Your Email"/>
+									
+							</div>
+							
+						</div>
+						
+						<div class="modal-footer">
+							<label class="msg"></label>
+							<input type="submit" class="btn btn-primary save" id="savebtn" value="Save" />
+							<input type="reset" class="btn btn-danger reset" id="canclebtn" value="Cancle" />
+						
+						</div>
+						
+					</div>
+					
+				</div>	
+				
+			</div>
+		
+		</form>
+			
+		</div>	
+		
+		
+		<div class="col-md-12 mt-3">
+		
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Mobile</th>
+						<th>Email</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				
+				<tbody class="show_data">
+					
+				</tbody>
+				
+				
+			</table>
+		
+		</div>
+		
+		
+	</div>
+	
+</div>
+
+
+<!-- Jquery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<!-- Bootstrap 4 css1 js 1 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+
+	$("#mymodal").on('hide.bs.modal', function(e){
+		$("input[name=id]").val(0);
+	});
+
+	/* Start AJAX Save Data */
+	$(document).ready(function(){
+		$(".myform").on("submit",function(e){
+			e.preventDefault();
+			
+			$.ajax({
+				method:"POST",
+				url:"student",
+				data:new FormData(this),
+				processData:false,
+				contentType:false,
+				beforeSend:function(){
+					$(".msg").html("Please Wait...");
+				},
+				success:function(res){
+					if(res.trim()=="Done"){
+						$(".msg").addClass("text-success");
+						$(".msg").html("Success");
+						$(".myform").trigger("reset");
+						getAllData();
+						setTimeout(function(){
+							$(".msg").removeClass("text-success");
+							$(".msg").html("");
+						},2000);
+					}else if(res.trim()=="Updated"){
+						$(".msg").addClass("text-success");
+						$(".msg").html("Success");
+						$(".myform").trigger("reset");
+						getAllData();
+						setTimeout(function(){
+							$(".msg").removeClass("text-success");
+							$(".msg").html("");
+						},2000);
+					}
+
+				},
+				error:function(error){
+					console.log(error);
+					if(error.responseText=="Fail"){
+						$(".msg").addClass("text-danger");
+						$(".msg").html("Failed Please try again");
+						setTimeout(function(){
+							$(".msg").removeClass("text-danger");
+							$(".msg").html("");
+						},3000);
+					}else if(error.responseText=="Updated Fail"){
+						$(".msg").addClass("text-danger");
+						$(".msg").html("Updated Failed Please try again");
+						setTimeout(function(){
+							$(".msg").removeClass("text-danger");
+							$(".msg").html("");
+						},3000);
+					}
+				}
+			});
+			
+		});
+	});
+	/* End AJAX Save Data */
+	
+	$(document).ready(function(){
+		getAllData();
+	});
+	
+	/* Start AJAX Show Data */
+	const getAllData = ()=>{
+
+		$.ajax({
+			method:"GET",
+			url:"student",
+			beforeSend:function(){
+				$(".show_data").html("Loading...");
+			},
+			success:function(res){
+				$(".show_data").html("");
+				res.forEach(function(data){
+					let html = `
+						<tr>
+							<td>${data.name}</td>
+							<td>${data.mobile}</td>
+							<td>${data.email}</td>
+							<td>
+								<div class='btn-group border' style='border-radius: 50px' role='group' >
+									<button id='${data.id}' class='btn m-1 del-student'><i class='fa-solid fa-trash text-danger'></i></button>
+									
+									<div class="spinner-border m-2 d-none loder" role="status">
+										<span class="sr-only">Loading...</span>
+									</div>
+									
+									<button id='${data.id}' class='btn m-1 edit-student'><i class='fa-solid fa-edit text-primary'></i></button>
+								</div>
+							</td>
+						</tr>`;
+						
+					$(".show_data").append(html);
+				});
+				
+				delete_student();
+				edit_student();
+			},
+			error:function(error){
+				$(".show_data").html(error.responseText);
+			}
+		});
+	}
+	/* End AJAX Show Data */
+	
+	/* Start Edit & Delete Student */
+	
+	function delete_student(){
+		$(".del-student").click(function(){
+			let el = this.parentElement.parentElement.parentElement;
+			
+			let del_el = this;
+			let del_loder = $(this).next();
+			
+			let id = $(this).attr("id");
+			if(confirm("Are you sure delete this record")){
+				$.ajax({
+					method:"DELETE",
+					url:"student?id="+id,
+							
+					beforeSend:function(){
+						$(del_loder).removeClass("d-none");
+						$(del_el).addClass("d-none");
+					},
+					success:function(res){
+						
+						if(res.trim()=="done"){
+							
+							$(del_loder).addClass("d-none");
+							$(del_el).removeClass("d-none");
+							
+							$(el).addClass("animate__animated animate__bounceOut");
+								setTimeout(function(){
+									el.remove();
+							},750);
+						}
+	
+					},
+					error:function(error){
+						alert(error);
+					}
+					
+				}); 
+			}
+			
+		});
+	}
+	/* End Edit & Delete Student */
+	
+	
+	/* Start Edit Student */
+	const edit_student = ()=>{
+		
+		$(".edit-student").click(function(){
+			
+			let edit_el = this;
+			let edit_loder = $(this).prev();
+			let id = $(this).attr("id");
+			
+			/* let el = this.parentElement.parentElement.parentElement;
+			let td = el.getElementsByTagName("TD");
+			
+			$("input[name=id]").val(id);
+			$("input[name=name]").val(td[0].innerText);
+			$("input[name=mobile]").val(td[1].innerText);
+			$("input[name=email]").val(td[2].innerText); */
+
+			$.ajax({
+				
+				method:"GET",
+				url:"student?id="+id,
+				beforeSend:function(){
+					$(edit_loder).removeClass("d-none");
+					$(edit_el).addClass("d-none");
+				},
+				success:function(res){
+					
+					$(edit_loder).addClass("d-none");
+					$(edit_el).removeClass("d-none");
+					
+					let student = JSON.parse(res);
+					$("input[name=id]").val(student.id);
+					$("input[name=name]").val(student.name);
+					$("input[name=mobile]").val(student.mobile);
+					$("input[name=email]").val(student.email);
+					
+					$("#mymodal").modal("show");
+					
+				},
+				error:function(error){
+					alert(error);
+				}
+				
+			});
+		});
+		
+	}
+	
+	
+	/* End Edit Student */
+	
+</script>
+
+</body>
+</html>
